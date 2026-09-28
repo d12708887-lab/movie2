@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Movie Portal - Download and Watch Movies</title>
+<meta name="description" content="Movie Portal: search movies and get download or watch links.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0b0d12">
+<style>
+html,body{margin:0;padding:0;background:#0b0d12;min-height:100%}
+#mp{max-width:1200px;margin:0 auto;min-height:100vh;border-radius:0}
+</style>
+</head>
+<body>
+<div id="mp" class="mp">
+<style>
+#mp{--bg:#0b0d12;--c1:#161922;--c2:#1e2230;--tx:#e8eaf0;--mut:#8b91a3;--blue:#3b82f6;--red:#ef4444;--green:#22c55e;--tg:#229ed9;--amber:#f59e0b;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px;box-sizing:border-box;border-radius:14px;position:relative}
+#mp *{box-sizing:border-box}
+#mp button,#mp input,#mp textarea{font:inherit;color:inherit}
+#mp .hd{position:relative;padding:8px 0 20px;text-align:center}
+#mp h1{margin:0 0 4px;font-size:26px;letter-spacing:-.3px}
+#mp .sub{margin:0 0 14px;color:var(--mut);font-size:14px}
+#mp-secret{position:absolute;top:2px;left:2px;width:14px;height:14px;padding:0;border:0;border-radius:50%;background:var(--mut);opacity:.16;cursor:pointer}
+#mp-search,#mp .in{width:100%;background:var(--c1);border:1px solid var(--c2);border-radius:10px;padding:11px 14px;outline:0}
+#mp-search{max-width:520px}
+#mp-search:focus,#mp .in:focus,#mp button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+#mp .grid{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:601px){#mp .grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:901px){#mp .grid{grid-template-columns:repeat(3,1fr)}}
+#mp .card{background:var(--c1);border:1px solid var(--c2);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+#mp .poster{position:relative;width:100%;padding-top:56.25%;background:var(--c2);cursor:pointer;display:block;border:0}
+#mp .poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#mp .cb{padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;flex:1}
+#mp .ct{margin:0;font-size:16px;font-weight:600;line-height:1.3}
+#mp .row{display:flex;flex-wrap:wrap;gap:8px}
+#mp .btn{background:var(--c2);border:1px solid transparent;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px}
+#mp .btn:hover{filter:brightness(1.15)}
+#mp .b-blue{background:var(--blue);color:#fff}
+#mp .b-tg{background:var(--tg);color:#fff}
+#mp .b-green{background:var(--green);color:#04150a}
+#mp .b-amber{background:var(--amber);color:#1a1100}
+#mp .b-red{background:var(--red);color:#fff}
+#mp .adm{display:none}
+#mp.is-admin .adm{display:block}
+#mp.is-admin .btn.adm{display:inline-block}
+#mp .panel{background:var(--c1);border:1px solid var(--c2);border-radius:12px;padding:16px;margin-bottom:20px}
+#mp .panel h2{margin:0 0 10px;font-size:17px}
+#mp .panel h3{margin:14px 0 6px;font-size:14px;color:var(--amber)}
+#mp .panel .in{margin-bottom:8px}
+#mp textarea.in{min-height:64px;resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+#mp .stats{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+#mp .stat{background:var(--c2);border-radius:10px;padding:8px 14px;min-width:110px}
+#mp .stat b{display:block;font-size:22px}
+#mp .empty{text-align:center;color:var(--mut);padding:40px 10px;border:1px dashed var(--c2);border-radius:12px}
+#mp .slot{margin:0 0 20px}
+#mp .slot iframe{display:block;width:100%;border:0;background:transparent}
+#mp-float{position:fixed;left:0;right:0;bottom:0;z-index:9990;background:var(--c1);border-top:1px solid var(--c2);padding:6px 36px 6px 6px;text-align:center;display:none}
+#mp-float iframe{border:0;max-width:100%}
+#mp-float .x{position:absolute;top:4px;right:6px;background:var(--c2);border:0;border-radius:50%;width:26px;height:26px;cursor:pointer;color:var(--tx)}
+#mp-toast{position:fixed;left:50%;bottom:70px;transform:translate(-50%,20px);background:var(--green);color:#04150a;padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:.25s;z-index:9999}
+#mp-toast.show{opacity:1;transform:translate(-50%,0)}
+#mp-toast.err{background:var(--red);color:#fff}
+#mp-modal,#mp-timer{position:fixed;inset:0;background:rgba(5,6,9,.82);display:none;align-items:center;justify-content:center;z-index:9995;padding:16px}
+#mp-modal.open,#mp-timer.open{display:flex}
+#mp .mbox{background:var(--c1);border:1px solid var(--c2);border-radius:14px;padding:22px;width:100%;max-width:360px;animation:mpin .2s ease}
+@keyframes mpin{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+#mp .mbox h2{margin:0 0 12px;font-size:18px}
+#mp .num{font-size:64px;font-weight:700;color:var(--amber);text-align:center;line-height:1}
+#mp .tmsg{text-align:center;color:var(--mut);margin:8px 0 14px}
+#mp .tbtns{display:flex;flex-direction:column;gap:10px}
+#mp .tbtns .btn{padding:14px;font-size:16px;font-weight:600}
+@media(prefers-reduced-motion:reduce){#mp *{animation:none!important;transition:none!important}}
+</style>
+
+<header class="hd">
+  <button id="mp-secret" type="button" aria-label="Admin"></button>
+  <h1>Movie Portal</h1>
+  <p class="sub">Search a title, then tap the poster to watch or download.</p>
+  <input id="mp-search" type="search" placeholder="Search movies..." aria-label="Search movies" autocomplete="off">
+</header>
+
+<section id="mp-admin" class="panel adm" aria-label="Admin panel"></section>
+<div id="mp-ads-top"></div>
+<main>
+  <div id="mp-grid" class="grid"></div>
+  <div id="mp-empty" class="empty" style="display:none"></div>
+</main>
+<div id="mp-ads-body"></div>
+<div id="mp-ads-bottom" style="margin-top:20px"></div>
+<div id="mp-host" style="display:none"></div>
+
+<div id="mp-float"><button class="x" type="button" aria-label="Close ad" id="mp-float-x">✕</button><div id="mp-float-in"></div></div>
+<div id="mp-toast" role="status"></div>
+<div id="mp-modal"><div class="mbox" id="mp-mbox"></div></div>
+<div id="mp-timer"><div class="mbox"><h2>Opening your link</h2><div class="num" id="mp-num">0</div><p class="tmsg" id="mp-tmsg">Please wait...</p><div class="tbtns" id="mp-tbtns"></div></div></div>
+
+<script>
+(function(){
+  var LT=String.fromCharCode(60),GT=String.fromCharCode(62);
+  var root=document.getElementById('mp');
+  function $(id){return document.getElementById(id);}
+  function el(t,c,x){var e=document.createElement(t);if(c){e.className=c;}if(x!==undefined){e.textContent=x;}return e;}
+  function ld(k,d){try{var v=localStorage.getItem(k);return v===null?d:JSON.parse(v);}catch(e){return d;}}
+  function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  function rm(k){try{localStorage.removeItem(k);}catch(e){}}
+  function isUrl(u){return u.indexOf('http://')===0||u.indexOf('https://')===0;}
+
+  var K={movies:'mp_movies',pass:'mp_pass',ads:'mp_ads',stats:'mp_stats'};
+  var FLAGS=['has_visited_site','has_clicked_ad','has_clicked_telegram'];
+  var movies=ld(K.movies,[]);
+  var ads=ld(K.ads,{});
+  var stats=ld(K.stats,{v:0,a:0,t:0});
+  function pass(){return ld(K.pass,'admin123');}
+
+  /* ---------- toast ---------- */
+  var tt;
+  function toast(m,err){var t=$('mp-toast');t.textContent=m;t.className=err?'err show':'show';clearTimeout(tt);tt=setTimeout(function(){t.className='';},2200);}
+
+  /* ---------- unique analytics ---------- */
+  function track(key,flag){
+    var done=false;try{done=localStorage.getItem(flag)==='1';}catch(e){}
+    if(done){return;}
+    try{localStorage.setItem(flag,'1');}catch(e){}
+    stats[key]=(stats[key]||0)+1;sv(K.stats,stats);renderStats();
+  }
+  function resetStats(){
+    stats={v:0,a:0,t:0};sv(K.stats,stats);
+    FLAGS.forEach(function(f){try{localStorage.removeItem(f);}catch(e){}});
+    renderStats();toast('Analytics reset');
+  }
+
+  /* ---------- ad rendering ---------- */
+  var SLOTS=[
+    {k:'asAuto',g:'as',t:'host',n:'1. Auto Ads header script'},
+    {k:'asHeader',g:'as',t:'top',n:'2. Display: Header / Top banner'},
+    {k:'asSide',g:'as',t:'body',n:'3. Display: Sidebar / In-body'},
+    {k:'asFeed',g:'as',t:'feed',n:'4. In-Feed (grid)'},
+    {k:'asArticle',g:'as',t:'body',n:'5. In-Article'},
+    {k:'asMulti',g:'as',t:'bottom',n:'6. Multiplex (bottom)'},
+    {k:'asAnchor',g:'as',t:'float',n:'7. Anchor (sticky bar)'},
+    {k:'asVignette',g:'as',t:'host',n:'8. Vignette (full-screen)'},
+    {k:'asCse',g:'as',t:'bottom',n:'9. Custom Search Engine ad script'},
+    {k:'atDirect',g:'at',t:'url',n:'1. Direct Link URL (Download / Watch buttons and posters)'},
+    {k:'atPop',g:'at',t:'host',n:'2. Popunder script (first click anywhere)'},
+    {k:'atSocial',g:'at',t:'host',n:'3. Social Bar script'},
+    {k:'atPush',g:'at',t:'host',n:'4. In-Page Push script'},
+    {k:'atNative',g:'at',t:'feed',n:'5. Native Banner (in movie grid)'},
+    {k:'atLeader',g:'at',t:'top',n:'6. Banner 728x90 (header leaderboard)'},
+    {k:'atRect',g:'at',t:'body',n:'7. Banner 300x250 (medium rectangle)'},
+    {k:'atMobile',g:'at',t:'float',n:'8. Banner 160x600 / 320x50 (mobile anchor)'}
+  ];
+  var HOSTK=['asAuto','asVignette','atPop','atSocial','atPush'];
+  function hOf(c){var m=/height['"]?\s*[:=]\s*(\d+)/.exec(c||'');return m?parseInt(m[1],10):0;}
+  function frame(code){
+    var m=/height['"]?\s*[:=]\s*(\d+)/.exec(code);
+    var h=m?parseInt(m[1],10):250;
+    var f=document.createElement('iframe');
+    f.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+    f.setAttribute('scrolling','no');f.setAttribute('loading','lazy');
+    f.style.height=(h+6)+'px';
+    f.srcdoc=LT+'html'+GT+LT+'body style="margin:0;background:transparent;text-align:center"'+GT+code+LT+'/body'+GT+LT+'/html'+GT;
+    return f;
+  }
+  function inject(code){
+    var host=$('mp-host'),tmp=document.createElement('div');
+    tmp.innerHTML=code;
+    var kids=Array.prototype.slice.call(tmp.childNodes);
+    kids.forEach(function(n){
+      if(n.nodeName==='SCRIPT'){
+        var s=document.createElement('script');
+        for(var i=0;i!==n.attributes.length;i++){s.setAttribute(n.attributes[i].name,n.attributes[i].value);}
+        s.text=n.text;host.appendChild(s);
+      }else{host.appendChild(n);}
+    });
+  }
+  function fillSlot(box,keys){
+    box.innerHTML='';
+    keys.forEach(function(k){
+      var c=ads[k];
+      if(c){var w=el('div','slot');w.appendChild(frame(c));box.appendChild(w);}
+    });
+    box.style.display=box.childNodes.length?'block':'none';
+  }
+  var feedEls=[];
+  function renderAds(){
+    var bodyK=['asSide','atRect','asArticle'],floatK=[];
+    ['asAnchor','atMobile'].forEach(function(k){
+      if(ads[k]){if(hOf(ads[k])!==Math.min(hOf(ads[k]),120)){bodyK.push(k);}else{floatK.push(k);}}
+    });
+    fillSlot($('mp-ads-top'),['asHeader','atLeader']);
+    fillSlot($('mp-ads-body'),bodyK);
+    fillSlot($('mp-ads-bottom'),['asMulti','asCse']);
+    feedEls=[];
+    ['asFeed','atNative'].forEach(function(k){
+      if(ads[k]){var w=el('div','slot');w.style.gridColumn='1 / -1';w.style.margin='0';w.appendChild(frame(ads[k]));feedEls.push(w);}
+    });
+    var fb=$('mp-float'),fi=$('mp-float-in');fi.innerHTML='';
+    var show=floatK.length!==0?!window.__mpFloatClosed:false;
+    if(show){floatK.forEach(function(k){fi.appendChild(frame(ads[k]));});fb.style.display='block';root.style.marginBottom='110px';}
+    else{fb.style.display='none';root.style.marginBottom='';}
+    renderMovies();
+  }
+  var injected={};
+  function initHostAds(){
+    HOSTK.forEach(function(k){
+      if(ads[k]?!injected[k]:false){injected[k]=1;inject(ads[k]);}
+    });
+  }
+
+  /* ---------- smart timer ---------- */
+  var tick;
+  function showTimer(secs,link){
+    var ov=$('mp-timer'),num=$('mp-num'),msg=$('mp-tmsg'),bx=$('mp-tbtns');
+    bx.innerHTML='';msg.textContent='Your link opens when the timer ends.';
+    ov.className='open';var left=secs;num.textContent=left;
+    clearInterval(tick);
+    tick=setInterval(function(){
+      left=left-1;num.textContent=left;
+      if(left===0){
+        clearInterval(tick);msg.textContent='Ready.';
+        if(link){
+          var go=el('button','btn b-green','Continue to movie');go.type='button';
+          go.onclick=function(){window.open(link,'_blank','noopener');};bx.appendChild(go);
+        }
+        var sk=el('button','btn b-red','✕ Skip Ad / Back to Portal');sk.type='button';
+        sk.onclick=function(){ov.className='';};bx.appendChild(sk);sk.focus();
+      }
+    },1000);
+  }
+  function openItem(m){
+    if(m.l||ads.atDirect){track('a','has_clicked_ad');}
+    if(ads.atDirect?isUrl(ads.atDirect):false){
+      window.open(ads.atDirect,'_blank','noopener');
+      showTimer(30,m.l);
+    }else if(ads.atPop){
+      showTimer(3,m.l);
+    }else if(m.l){
+      window.open(m.l,'_blank','noopener');
+    }else{toast('No link added yet',true);}
+  }
+
+  /* ---------- clipboard ---------- */
+  function copy(txt){
+    function fb(){var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy');toast('Link Copied!');}catch(e){toast('Copy failed',true);}document.body.removeChild(t);}
+    if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){toast('Link Copied!');},fb);}else{fb();}
+  }
+
+  /* ---------- movie grid ---------- */
+  var PH='data:image/svg+xml;utf8,'+encodeURIComponent(LT+'svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 9"'+GT+LT+'rect width="16" height="9" fill="#1e2230"/'+GT+LT+'text x="8" y="5" font-size="1.2" fill="#8b91a3" text-anchor="middle"'+GT+'No poster'+LT+'/text'+GT+LT+'/svg'+GT);
+  function card(m){
+    var c=el('article','card');
+    var p=el('button','poster');p.type='button';p.setAttribute('aria-label','Open '+m.t);
+    var im=document.createElement('img');im.alt=m.t;im.loading='lazy';im.src=m.p;
+    im.onerror=function(){im.onerror=null;im.src=PH;};
+    p.appendChild(im);p.onclick=function(){openItem(m);};
+    var b=el('div','cb');b.appendChild(el('h3','ct',m.t));
+    var r=el('div','row');
+    var d=el('button','btn b-blue','Download / Watch');d.type='button';d.onclick=function(){openItem(m);};r.appendChild(d);
+    var cp=el('button','btn','Copy Link');cp.type='button';cp.onclick=function(){copy(location.href);};r.appendChild(cp);
+    if(m.tg){var tg=el('button','btn b-tg','Telegram');tg.type='button';tg.onclick=function(){track('t','has_clicked_telegram');window.open(m.tg,'_blank','noopener');};r.appendChild(tg);}
+    var x=el('button','btn b-red adm','Delete');x.type='button';x.onclick=function(){
+      if(confirm('Delete "'+m.t+'"?')){movies=movies.filter(function(z){return z.id!==m.id;});sv(K.movies,movies);renderMovies();toast('Deleted');}
+    };r.appendChild(x);
+    b.appendChild(r);c.appendChild(p);c.appendChild(b);return c;
+  }
+  function renderMovies(){
+    var q=$('mp-search').value.trim().toLowerCase(),g=$('mp-grid'),e=$('mp-empty');
+    g.innerHTML='';
+    var list=movies.filter(function(m){return m.t.toLowerCase().indexOf(q)!==-1;});
+    function addFeed(){feedEls.forEach(function(w){g.appendChild(w);});}
+    var feedOn=q===''?feedEls.length!==0:false;
+    list.forEach(function(m,i){g.appendChild(card(m));if(feedOn?i===2:false){addFeed();}});
+    if(feedOn?(list.length!==0?list.length!==Math.max(list.length,3):false):false){addFeed();}
+    if(list.length){e.style.display='none';}
+    else{e.style.display='block';e.textContent=movies.length?'No movies match "'+$('mp-search').value.trim()+'".':'No movies yet. Check back soon.';}
+  }
+
+  /* ---------- modal ---------- */
+  function modal(title,fields,okText,fn){
+    var box=$('mp-mbox');box.innerHTML='';box.appendChild(el('h2','',title));
+    var ins=[];
+    fields.forEach(function(f){var i=el('input','in');i.type=f.type||'text';i.placeholder=f.ph;i.style.marginBottom='10px';box.appendChild(i);ins.push(i);});
+    var r=el('div','row');
+    var ok=el('button','btn b-blue',okText);ok.type='button';
+    var no=el('button','btn','Cancel');no.type='button';
+    function close(){$('mp-modal').className='';}
+    ok.onclick=function(){if(fn(ins.map(function(i){return i.value;}))!==false){close();}};
+    no.onclick=close;r.appendChild(ok);r.appendChild(no);box.appendChild(r);
+    $('mp-modal').className='open';if(ins[0]){ins[0].focus();}
+    ins.forEach(function(i){i.onkeydown=function(e){if(e.key==='Enter'){ok.click();}};});
+  }
+
+  /* ---------- admin ---------- */
+  var statEls={};
+  function renderStats(){for(var k in statEls){statEls[k].textContent=stats[k]||0;}}
+  function mkIn(ph){var i=el('input','in');i.placeholder=ph;return i;}
+  function buildAdmin(){
+    var a=$('mp-admin');a.innerHTML='';
+    a.appendChild(el('h2','','Admin panel'));
+
+    a.appendChild(el('h3','','Add movie'));
+    var t=mkIn('Movie title (required)'),p=mkIn('Poster image URL (required)'),l=mkIn('Monetization link (optional)'),tg=mkIn('Telegram link (optional)');
+    [t,p,l,tg].forEach(function(i){a.appendChild(i);});
+    var add=el('button','btn b-green','Save movie');add.type='button';
+    add.onclick=function(){
+      var T=t.value.trim(),P=p.value.trim(),L=l.value.trim(),G=tg.value.trim();
+      if(!T||!P){toast('Title and poster are required',true);return;}
+      if(!isUrl(P)||(L?!isUrl(L):false)||(G?!isUrl(G):false)){toast('URLs must start with http:// or https://',true);return;}
+      movies.unshift({id:Date.now().toString(36),t:T,p:P,l:L,tg:G});sv(K.movies,movies);
+      t.value='';p.value='';l.value='';tg.value='';renderMovies();toast('Saved!');
+    };
+    a.appendChild(add);
+
+    a.appendChild(el('h3','','Ad networks (empty slots stay hidden)'));
+    var tabs=el('div','row');tabs.style.marginBottom='10px';
+    var groups={as:el('div'),at:el('div')};
+    var tb={as:el('button','btn b-blue','Google AdSense'),at:el('button','btn','Adsterra')};
+    function showG(g){for(var k in groups){groups[k].style.display=k===g?'block':'none';tb[k].className=k===g?'btn b-blue':'btn';}}
+    ['as','at'].forEach(function(k){tb[k].type='button';tb[k].onclick=function(){showG(k);};tabs.appendChild(tb[k]);});
+    a.appendChild(tabs);a.appendChild(groups.as);a.appendChild(groups.at);showG('as');
+    SLOTS.forEach(function(s){
+      var wrap=el('div');wrap.appendChild(el('div','sub',s.n));
+      var f=s.t==='url'?mkIn('https://... direct link'):el('textarea','in');
+      if(s.t!=='url'){f.placeholder='Paste ad code';}
+      f.value=ads[s.k]||'';wrap.appendChild(f);
+      var r=el('div','row');r.style.marginBottom='10px';
+      var sv1=el('button','btn b-blue','Save');sv1.type='button';
+      sv1.onclick=function(){
+        var v=f.value.trim();
+        if(s.t==='url'?(v?!isUrl(v):false):false){toast('Direct link must start with http(s)://',true);return;}
+        if(v){ads[s.k]=v;}else{delete ads[s.k];}
+        sv(K.ads,ads);renderAds();
+        if(s.t==='host'){toast('Saved. Reload the page to activate.');}else{toast('Saved!');}
+      };
+      var cl=el('button','btn b-red','Clear / Delete');cl.type='button';
+      cl.onclick=function(){delete ads[s.k];sv(K.ads,ads);f.value='';renderAds();toast('Cleared');};
+      r.appendChild(sv1);r.appendChild(cl);wrap.appendChild(r);groups[s.g].appendChild(wrap);
+    });
+
+    a.appendChild(el('h3','','Analytics (unique per visitor)'));
+    var st=el('div','stats');
+    [['v','Visitors'],['a','Ad clicks'],['t','Telegram clicks']].forEach(function(x){
+      var b=el('div','stat');var n=el('b','',stats[x[0]]||0);statEls[x[0]]=n;b.appendChild(n);b.appendChild(el('span','sub',x[1]));st.appendChild(b);
+    });
+    a.appendChild(st);
+    var rs=el('button','btn b-red','Reset Analytics');rs.type='button';
+    rs.onclick=function(){if(confirm('Reset all analytics?')){resetStats();}};a.appendChild(rs);
+
+    a.appendChild(el('h3','','Account'));
+    var r2=el('div','row');
+    var cp=el('button','btn b-amber','Change password');cp.type='button';
+    cp.onclick=function(){modal('Change password',[{ph:'Current password',type:'password'},{ph:'New password (min 6 chars)',type:'password'}],'Update',function(v){
+      if(v[0]!==pass()){toast('Wrong current password',true);return false;}
+      if(v[1].length!==Math.max(v[1].length,6)){toast('Use at least 6 characters',true);return false;}
+      sv(K.pass,v[1]);toast('Password updated');
+    });};
+    var lo=el('button','btn','Log out');lo.type='button';
+    lo.onclick=function(){try{sessionStorage.removeItem('mp_admin');}catch(e){}root.className=root.className.replace(' is-admin','');toast('Logged out');};
+    r2.appendChild(cp);r2.appendChild(lo);a.appendChild(r2);
+  }
+  function setAdmin(){if(root.className.indexOf('is-admin')===-1){root.className+=' is-admin';}}
+  $('mp-secret').onclick=function(){
+    var on=false;try{on=sessionStorage.getItem('mp_admin')==='1';}catch(e){}
+    if(on){if(root.className.indexOf('is-admin')===-1){setAdmin();}else{root.className=root.className.replace(' is-admin','');}return;}
+    modal('Admin login',[{ph:'Password',type:'password'}],'Log in',function(v){
+      if(v[0]!==pass()){toast('Wrong password',true);return false;}
+      try{sessionStorage.setItem('mp_admin','1');}catch(e){}setAdmin();toast('Welcome, admin');
+    });
+  };
+
+  /* ---------- init ---------- */
+  $('mp-search').oninput=renderMovies;
+  $('mp-float-x').onclick=function(){window.__mpFloatClosed=true;$('mp-float').style.display='none';root.style.marginBottom='';};
+  $('mp-modal').onclick=function(e){if(e.target===this){this.className='';}};
+  buildAdmin();renderMovies();renderAds();initHostAds();
+  track('v','has_visited_site');
+})();
+</script>
+</div>
+</body>
+</html>
